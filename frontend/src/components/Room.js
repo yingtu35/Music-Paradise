@@ -1,19 +1,21 @@
 import React, { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Grid, Typography, Button} from "@mui/material"
+import CreateRoomPage from "./CreateRoomPage";
 
 export default function Room(props) {
     const navigate = useNavigate();
+
     const[votesToSkip, setVotesToSkip] = useState(2);
     const[guestCanPause, setGuestCanPause] = useState(false);
     const[isHost, setIsHost] = useState(false);
-
+    const[updateSettings, setUpdateSettings] = useState(false);
     const { roomCode } = useParams();
 
     const handleLeaveRoomButtonPressed = () => {
         const requestOptions = {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
+            headers: {"Content-Type": "application/json"}
         };
         fetch("/api/leave-room", requestOptions)
             .then((response) => {
@@ -23,6 +25,48 @@ export default function Room(props) {
                 }
             });
     }
+
+    const handleSettingsButtonPressed = (value) => { setUpdateSettings(value) };
+
+    const renderSettingsButton = () => {
+        return (<Grid item xs={12}>
+            <Button 
+                color="primary" 
+                variant="contained"
+                onClick={handleSettingsButtonPressed} 
+            >
+                Settings
+            </Button>
+        </Grid>)
+    };
+
+    const renderSettings = () => {
+        return (
+            <Grid container spacing={1} align="center">
+                <Grid item xs={12}>
+                <CreateRoomPage 
+                    update={true} 
+                    votes_to_skip={votesToSkip} 
+                    guest_can_pause={guestCanPause} 
+                    roomCode = {roomCode}
+                    updateCallback={(data) => {
+                        setVotesToSkip(data.votes_to_skip);
+                        setGuestCanPause(data.guest_can_pause);
+                        setIsHost(data.is_host)}}
+                    />
+                </Grid>
+                <Grid item xs={12}>
+                    <Button 
+                        color="secondary" 
+                        variant="contained"
+                        onClick={() => {setUpdateSettings(false)}} 
+                    >
+                        Close
+                    </Button>
+                </Grid>
+            </Grid>)
+    }
+
     fetch("/api/get-room" + "?code=" + roomCode)
     .then((response) => response.json())
     .then((data) => {
@@ -31,6 +75,9 @@ export default function Room(props) {
         setIsHost(data.is_host)
     });
 
+    if (updateSettings){
+        return renderSettings();
+    }
     return (<Grid container spacing={1} align="center">
         <Grid item xs={12}>
             <Typography component="h4" variant="h4">
@@ -52,6 +99,7 @@ export default function Room(props) {
                 Host: {String(isHost)}
             </Typography>
         </Grid>
+        {isHost ? renderSettingsButton() : null}
         <Grid item xs={12}>
             <Button 
                 color="secondary" 

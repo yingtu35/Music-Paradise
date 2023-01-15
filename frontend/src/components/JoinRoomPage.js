@@ -43,6 +43,7 @@ export default function JoinRoomPage(props) {
         <Grid item xs={12} >
             <FormControl>
                 <TextField
+                autoFocus={true}
                 error={error}
                 label="Code"
                 placeholder= "Enter a Room Code"
@@ -51,9 +52,9 @@ export default function JoinRoomPage(props) {
                 type="text"
                 helperText = {error}
                 onChange={handleCodeChange}
-                inputProps={{
-                    style: { textAlign: "center" },
-                }}
+                // inputProps={{
+                //     style: { textAlign: "center" },
+                // }}
                 />
             </FormControl>
         </Grid>
