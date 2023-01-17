@@ -9,7 +9,8 @@ from .models import SpotifyToken
 from django.utils import timezone
 from datetime import timedelta
 import base64
-from .utils import is_spotify_authenticated
+from .utils import is_spotify_authenticated, execute_request
+from api.models import Room
 
 # Create your views here.
 class AuthURL(APIView):
@@ -45,7 +46,7 @@ def spotify_callback(request, format=None):
     #                 "Authorization": "Basic " + str(base64.b64encode((CLIENT_ID + ":" + CLIENT_SECRET).encode()))[2:],
     #                 "Content-Type": "application/x-www-form-urlencoded"
     #             }
-    print(response)
+    # print(response)
     
     access_token = response.get("access_token")
     token_type = response.get("token_type")
@@ -71,6 +72,42 @@ class IsAuthenticated(APIView):
             self.request.session.session_key)
         # print(is_authenticated)
         return Response({"status": is_authenticated}, status=status.HTTP_200_OK)
+
+class CurrentSong(APIView):
+    def get(self, request, format=None):
+        roomCode = self.request.session.get("room_code")
+        queryset = Room.objects.filter(code=roomCode)
+        if not queryset.exists():
+            return Response({"Error": "You are not in a room"}, status=status.HTTP_404_NOT_FOUND)
+
+        room = queryset[0]
+        host = room.host
+        endpoint = "player/currently-playing"
+
+        response = execute_request(host, endpoint)
+        if "error" in response or "item" not in response:
+            return Response(response, status=status.HTTP_204_NO_CONTENT)
+
+        item = response.get("item")
+        progress = response.get("progress_ms")
+        duration = item.get("duration_ms")
+        album_cover_src = item.get("album").get("images")[0].get("url")
+        is_playing = response.get("is_playing")
+        song_id = item.get("id")
+
+        artists = ", ".join([artist.get("name") for artist in item.get("artists")])
+        song = {
+            "title": item.get("name"),
+            "artist": artists,
+            "duration": duration,
+            "time": progress,
+            "image_url": album_cover_src,
+            "is_playing": is_playing,
+            "votes": 0,
+            "id": song_id
+        }
+        return Response(song, status=status.HTTP_200_OK)
+
 
 
         

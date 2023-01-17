@@ -1,16 +1,24 @@
 from .models import SpotifyToken
 from django.utils import timezone
-from requests import post
+from requests import post, get, put
 from datetime import timedelta
 import base64
 from .credentials import CLIENT_ID, CLIENT_SECRET
 
-def is_spotify_authenticated(session_id):
-    tokens = SpotifyToken.objects.filter(user=session_id)
-    # print(tokens)
-    if tokens.exists():
-        token = tokens[0]
+BASIC_URI = "https://api.spotify.com/v1/me/"
 
+def get_user_tokens(session_id):
+    user_tokens = SpotifyToken.objects.filter(user=session_id)
+    # print(user_tokens)
+    if user_tokens.exists():
+        return user_tokens[0]
+    else:
+        return None
+
+def is_spotify_authenticated(session_id):
+    token = get_user_tokens(session_id)
+    # print(tokens)
+    if token:
         if token.expires_in <= timezone.now():
             refresh_token(token)
         return True
@@ -18,7 +26,9 @@ def is_spotify_authenticated(session_id):
     return False
 
 def refresh_token(token):
-    refresh_token = token.refresh_token 
+    user = token.user
+    refresh_token = token.refresh_token
+    expired_access_token = token.access_token 
 
     response = post("https://accounts.spotify.com/api/token", data=
                 {
@@ -31,13 +41,37 @@ def refresh_token(token):
     #                 "Authorization": "Basic " + str(base64.b64encode((CLIENT_ID + ":" + CLIENT_SECRET).encode()))[2:],
     #                 "Content-Type": "application/x-www-form-urlencoded"
     #             }
+    print(response)
 
     access_token = response.get("access_token")
     token_type = response.get("token_type")
-    refresh_token = response.get("refresh_token")
     expires_in = timezone.now() + timedelta(seconds=response.get("expires_in"))
 
     spotify_token, created = SpotifyToken.objects.update_or_create(
-        user=token.user, access_token=access_token, refresh_token=refresh_token, defaults=
-        {"expires_in": expires_in, "token_type": token_type}
+        user=user, access_token=expired_access_token, refresh_token=refresh_token, defaults=
+        {"access_token": access_token, "expires_in": expires_in, "token_type": token_type}
     )
+
+def execute_request(session_id, endpoint, data={}, post_=False, put_=False):
+    token = get_user_tokens(session_id)
+    if token:
+        access_token = token.access_token
+        endpoint = BASIC_URI + endpoint
+        headers = {"Authorization": "Bearer " + access_token, 
+                    "Content-Type": "application/json"
+                    }
+
+        if post_:
+            post(endpoint, headers=headers, data=data)
+        elif put_:
+            put(endpoint, headers=headers, data=data)
+        else:
+            response = get(endpoint, {}, headers=headers)
+        
+        # Not all response will succeed
+        try:
+            return response.json()
+        except:
+            return {"Error": "Problems with request"}
+        
+

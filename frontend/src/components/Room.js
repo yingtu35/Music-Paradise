@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Grid, Typography, Button} from "@mui/material"
 import CreateRoomPage from "./CreateRoomPage";
+import MusicPlayer from "./MusicPlayer";
 
 export default function Room(props) {
     const navigate = useNavigate();
@@ -12,6 +13,7 @@ export default function Room(props) {
     const[updateSettings, setUpdateSettings] = useState(false);
     const { roomCode } = useParams();
     const[spotifyAuth, setSpotifyAuth] = useState(false);
+    const[song, setSong] = useState({});
 
     var responseClone;
 
@@ -67,6 +69,21 @@ export default function Room(props) {
             </Grid>)
     }
 
+    function getCurrentSong() {
+        fetch("/spotify/current-song")
+        .then((response) => {
+            if (!response.ok){
+                return {};
+            } else{
+                return response.json();
+            }
+        })
+        .then((data) => {
+            setSong(data);
+            console.log(data);
+        })
+    };
+
     function authenticateSpotify() {
         fetch("/spotify/is-authenticated")
         .then((response) => {
@@ -100,11 +117,21 @@ export default function Room(props) {
     }
 
     useEffect(() => {
+        // effect 1: get the information of the room
         getRoomSettings();
         return () => {
             // clean up previous effect here
         }
     }, [roomCode]);
+
+    useEffect(() => {
+        // effect 2: get the current song information
+        const interval = setInterval(getCurrentSong, 1000);
+    
+        return () => {
+            clearInterval(interval);
+        }
+    }, []);
 
     if (updateSettings){
         return renderSettings();
@@ -115,21 +142,8 @@ export default function Room(props) {
                 {roomCode}
             </Typography>
         </Grid>
-        <Grid item xs={12}>
-            <Typography component="body1" variant="string">
-                Votes: {votesToSkip}
-            </Typography>
-        </Grid>
-        <Grid item xs={12}>
-            <Typography component="body1" variant="string">
-                Guest Can Pause: {String(guestCanPause)}
-            </Typography>
-        </Grid>
-        <Grid item xs={12}>
-            <Typography component="body1" variant="string">
-                Host: {String(isHost)}
-            </Typography>
-        </Grid>
+        <MusicPlayer {...song}/>
+        {/* {song} */}
         {isHost ? renderSettingsButton() : null}
         <Grid item xs={12}>
             <Button 
