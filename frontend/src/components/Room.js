@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Grid, Typography, Button} from "@mui/material"
 import CreateRoomPage from "./CreateRoomPage";
@@ -11,6 +11,9 @@ export default function Room(props) {
     const[isHost, setIsHost] = useState(false);
     const[updateSettings, setUpdateSettings] = useState(false);
     const { roomCode } = useParams();
+    const[spotifyAuth, setSpotifyAuth] = useState(false);
+
+    var responseClone;
 
     const handleLeaveRoomButtonPressed = () => {
         const requestOptions = {
@@ -49,10 +52,7 @@ export default function Room(props) {
                     votes_to_skip={votesToSkip} 
                     guest_can_pause={guestCanPause} 
                     roomCode = {roomCode}
-                    updateCallback={(data) => {
-                        setVotesToSkip(data.votes_to_skip);
-                        setGuestCanPause(data.guest_can_pause);
-                        setIsHost(data.is_host)}}
+                    updateCallback={getRoomSettings}
                     />
                 </Grid>
                 <Grid item xs={12}>
@@ -67,13 +67,44 @@ export default function Room(props) {
             </Grid>)
     }
 
-    fetch("/api/get-room" + "?code=" + roomCode)
-    .then((response) => response.json())
-    .then((data) => {
-        setVotesToSkip(data.votes_to_skip);
-        setGuestCanPause(data.guest_can_pause);
-        setIsHost(data.is_host)
-    });
+    function authenticateSpotify() {
+        fetch("/spotify/is-authenticated")
+        .then((response) => {
+            responseClone = response.clone();
+            return response.json()})
+        .then((data) => {
+            setSpotifyAuth(data.status);
+            // console.log(data.status);
+            if (!data.status) {
+            fetch("/spotify/get-auth-url")
+            .then((response) => response.json())
+            .then((data) => window.location.replace(data.url));
+            }}, (rejectReason) => {
+            console.log('Error parsing JSON from response:', rejectReason, responseClone);
+            responseClone.text()
+                .then((bodyText) => console.log('Received the following instead of valid JSON:', bodyText))
+            })
+    }
+
+    function getRoomSettings () {
+        fetch("/api/get-room" + "?code=" + roomCode)
+        .then((response) => response.json())
+        .then((data) => {
+            setVotesToSkip(data.votes_to_skip);
+            setGuestCanPause(data.guest_can_pause);
+            setIsHost(data.is_host);
+            if (data.is_host) {
+                authenticateSpotify();
+            }
+        });
+    }
+
+    useEffect(() => {
+        getRoomSettings();
+        return () => {
+            // clean up previous effect here
+        }
+    }, [roomCode]);
 
     if (updateSettings){
         return renderSettings();
@@ -111,28 +142,3 @@ export default function Room(props) {
         </Grid>
     </Grid>)
 };
-
-// Class component does not work as this.props.match is not working anymore
-
-// export default class Room extends Component {
-//     constructor(props) {
-//         super(props);
-//         this.state = {
-//             votesToSkip: 2,
-//             guestCanPause: false,
-//             isHost: false,
-//         };
-//         this.roomCode = this.props.match.params.roomCode;
-//     }
-
-//     render() {
-//         return (
-//             <div>
-//                 <h3>{this.roomCode}</h3>
-//                 <p>Votes: {this.state.votesToSkip}</p>
-//                 <p>Guest Can Pause: {String(this.state.guestCanPause)}</p>
-//                 <p>Host: {String(this.state.isHost)}</p>
-//             </div>
-//         )
-//     }
-// }

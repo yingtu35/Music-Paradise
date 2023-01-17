@@ -1,10 +1,12 @@
 from django.urls import path
 from .views import index
 
+app_name = "frontend"
+
 urlpatterns = [
-    path("", index),
+    path("", index, name=""),
     path("join", index),
     path("create", index),
-    path("room/<str:roomCode>", index),
+    # path("room/<str:roomCode>", index),
     path('<path:path>', index) # redirect any other paths to index
 ]

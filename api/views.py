@@ -45,6 +45,7 @@ class GetRoomView(APIView):
                 room = queryset[0]
                 data = RoomSerializer(room).data
                 data["is_host"] = self.request.session.session_key == room.host
+                # print(data["is_host"])
                 return Response(data, status=status.HTTP_200_OK)
             else:
                 return Response({"Room Not Found": "Invalid Room Code"}, status=status.HTTP_400_BAD_REQUEST)
@@ -85,6 +86,7 @@ class UserInRoomView(APIView):
         if not self.request.session.exists(self.request.session.session_key):
             self.request.session.create()
         
+        # print(self.request.session.session_key)
         data = {
             "code": self.request.session.get("room_code")
         }
