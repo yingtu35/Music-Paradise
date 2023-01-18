@@ -74,13 +74,16 @@ export default function Room(props) {
         .then((response) => {
             if (!response.ok){
                 return {};
-            } else{
+            } else if (response.status === 204) {
+                console.log("204 No Content");
+                return {};
+            }else{
                 return response.json();
             }
         })
         .then((data) => {
             setSong(data);
-            console.log(data);
+            // console.log(data);
         })
     };
 

@@ -1,4 +1,5 @@
 from .models import SpotifyToken
+from api.models import Room
 from django.utils import timezone
 from requests import post, get, put
 from datetime import timedelta
@@ -41,7 +42,7 @@ def refresh_token(token):
     #                 "Authorization": "Basic " + str(base64.b64encode((CLIENT_ID + ":" + CLIENT_SECRET).encode()))[2:],
     #                 "Content-Type": "application/x-www-form-urlencoded"
     #             }
-    print(response)
+    # print(response)
 
     access_token = response.get("access_token")
     token_type = response.get("token_type")
@@ -52,7 +53,14 @@ def refresh_token(token):
         {"access_token": access_token, "expires_in": expires_in, "token_type": token_type}
     )
 
-def execute_request(session_id, endpoint, data={}, post_=False, put_=False):
+def get_current_room(session):
+    roomCode = session.get("room_code")
+    queryset = Room.objects.filter(code=roomCode)
+    if not queryset.exists():
+        return False
+    return queryset[0]
+
+def execute_request(session_id, endpoint, post_=False, put_=False, data={}):
     token = get_user_tokens(session_id)
     if token:
         access_token = token.access_token
@@ -62,16 +70,19 @@ def execute_request(session_id, endpoint, data={}, post_=False, put_=False):
                     }
 
         if post_:
-            post(endpoint, headers=headers, data=data)
+            response = post(endpoint, headers=headers, json=data)
         elif put_:
-            put(endpoint, headers=headers, data=data)
+            response = put(endpoint, headers=headers, json=data)
         else:
             response = get(endpoint, {}, headers=headers)
+        
+        # print(response)
         
         # Not all response will succeed
         try:
             return response.json()
         except:
-            return {"Error": "Problems with request"}
+            # return {"Error": "Problems with request"}
+            return response
         
 

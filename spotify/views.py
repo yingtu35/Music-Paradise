@@ -9,7 +9,7 @@ from .models import SpotifyToken
 from django.utils import timezone
 from datetime import timedelta
 import base64
-from .utils import is_spotify_authenticated, execute_request
+from .utils import *
 from api.models import Room
 
 # Create your views here.
@@ -75,17 +75,25 @@ class IsAuthenticated(APIView):
 
 class CurrentSong(APIView):
     def get(self, request, format=None):
-        roomCode = self.request.session.get("room_code")
-        queryset = Room.objects.filter(code=roomCode)
-        if not queryset.exists():
+        room = get_current_room(self.request.session)
+        if not room:
             return Response({"Error": "You are not in a room"}, status=status.HTTP_404_NOT_FOUND)
 
-        room = queryset[0]
         host = room.host
         endpoint = "player/currently-playing"
 
         response = execute_request(host, endpoint)
-        if "error" in response or "item" not in response:
+        if "error" in response:
+            # need to fetch the request again because the token of the host has expired
+            if response.get("error").get("status") == 401 and self.request.session.session_key == host:
+                user_token = get_user_tokens(self.request.session.session_key)
+                refresh_token(user_token)
+                # print("Token is automatically refreshed!")
+                response = execute_request(host, endpoint)
+            else:
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        if "item" not in response:
             return Response(response, status=status.HTTP_204_NO_CONTENT)
 
         item = response.get("item")
@@ -107,6 +115,73 @@ class CurrentSong(APIView):
             "id": song_id
         }
         return Response(song, status=status.HTTP_200_OK)
+
+class PauseSong(APIView):
+    def put(self, request, format=None):
+        room = get_current_room(self.request.session)
+        if not room:
+            return Response({"Error": "You are not in a room"}, status=status.HTTP_404_NOT_FOUND)
+
+        if self.request.session.session_key == room.host or room.guest_can_pause:
+            host = room.host
+            endpoint = "player/pause"
+
+            response = execute_request(host, endpoint, put_=True)
+            if "error" in response:
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
+            return Response({"Success": "Song is paused."}, status=status.HTTP_200_OK)
+        return Response({}, status=status.HTTP_403_FORBIDDEN)
+
+class PlaySong(APIView):
+    def put(self, request, format=None):
+        room = get_current_room(self.request.session)
+        if not room:
+            return Response({"Error": "You are not in a room"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if self.request.session.session_key == room.host or room.guest_can_pause:
+            host = room.host
+            endpoint = "player/play"
+
+            response = execute_request(host, endpoint, put_=True)
+            if "error" in response:
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            
+            return Response({"Success": "Song is played."}, status=status.HTTP_200_OK)
+        return Response({}, status=status.HTTP_403_FORBIDDEN)
+
+class SkipToNextSong(APIView):
+    def post(self, request, format=None):
+        room = get_current_room(self.request.session)
+        if not room:
+            return Response({"Error": "You are not in a room"}, status=status.HTTP_404_NOT_FOUND)
+
+        
+        host = room.host
+        endpoint = "player/next"
+
+        response = execute_request(host, endpoint, post_=True)
+
+        if "error" in response:
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({"Success": "Play next song."}, status=status.HTTP_200_OK)
+
+class SkipToPreviousSong(APIView):
+    def post(self, request, format=None):
+        room = get_current_room(self.request.session)
+        if not room:
+            return Response({"Error": "You are not in a room"}, status=status.HTTP_404_NOT_FOUND)
+
+        host = room.host
+        endpoint = "player/previous"
+
+        response = execute_request(host, endpoint, post_=True)
+
+        if "error" in response:
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({"Success": "Play previous song."}, status=status.HTTP_200_OK)
 
 
 
