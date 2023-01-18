@@ -5,6 +5,7 @@ from requests import post, get, put
 from datetime import timedelta
 import base64
 from .credentials import CLIENT_ID, CLIENT_SECRET
+import json
 
 BASIC_URI = "https://api.spotify.com/v1/me/"
 
@@ -70,14 +71,14 @@ def execute_request(session_id, endpoint, post_=False, put_=False, data={}):
                     }
 
         if post_:
-            response = post(endpoint, headers=headers, json=data)
+            response = post(endpoint, data=data, headers=headers)
         elif put_:
-            response = put(endpoint, headers=headers, json=data)
+            response = put(endpoint, data=data, headers=headers)
         else:
             response = get(endpoint, {}, headers=headers)
         
-        # print(response)
-        
+        # print(response.json())
+
         # Not all response will succeed
         try:
             return response.json()
