@@ -80,9 +80,9 @@ Note there are some changes from the tutorial includes:
 
 [MIT](https://choosealicense.com/licenses/mit/)
 
-[1]: /imgs/Demo-1.png "HomePage"
-[2]: /imgs/Demo-2.png "Create Room Page"
-[3]: /imgs/Demo-3.png "Join Room Page"
-[4]: /imgs/Demo-4.png "Room Page"
+[1]: /imgs/Demo_1.png "HomePage"
+[2]: /imgs/Demo_2.png "Create Room Page"
+[3]: /imgs/Demo_3.png "Join Room Page"
+[4]: /imgs/Demo_4.png "Room Page"
   
 
