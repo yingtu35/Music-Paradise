@@ -1,5 +1,5 @@
 # Music Paradise - A collaborative music controller
-![Alt][1]
+![Demo_1](https://user-images.githubusercontent.com/91551415/213913419-723845c8-81d7-4e25-aa84-cd44335bf8b7.PNG)
 
 ## If you are looking for a app that friends can control the music together. You need Music Paradise.
 
@@ -8,11 +8,11 @@ Music Paradise is a collaborative music controlling web application\
 \
 You can be a host, create a room, and invite your friends to join by sharing the room code.\
 When creating the room, you can specify whether you allow your guests to control the music.\
-![Alt][2]\
+![Demo_2](https://user-images.githubusercontent.com/91551415/213913433-9a8dce4f-6d7a-4e76-8a01-28a3a04c7e8a.PNG) \
 Or you can join the room if you get the room code from your friends.\
-![Alt][3]\
+![Demo_3](https://user-images.githubusercontent.com/91551415/213913450-c7fe9ddf-bf11-40e4-a155-d3a3e5ebf202.PNG) \
 Inside the room, the music player panel displays the music playing.\
-![Alt][4]\
+![Demo_4](https://user-images.githubusercontent.com/91551415/213913464-0c9df414-c806-4316-a36b-b135b180e3ee.PNG)
 
 ### How Music Paradise is created
 Music Paradise consists of several parts:\
