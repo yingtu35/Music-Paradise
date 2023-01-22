@@ -4,17 +4,18 @@
 ## If you are looking for a app that friends can control the music together. You need Music Paradise.
 
 ### Description
-Music Paradise is a collaborative music controlling web application
-You can be a host, create a room, and invite your friends to join by sharing the room code.
-When creating the room, you can specify whether you allow your guests to control the music.
-![Alt][2]
-Or you can join the room if you get the room code from your friends.
-![Alt][3]
-Inside the room, the music player panel displays the music playing
-![Alt][4]
+Music Paradise is a collaborative music controlling web application\
+\
+You can be a host, create a room, and invite your friends to join by sharing the room code.\
+When creating the room, you can specify whether you allow your guests to control the music.\
+![Alt][2]\
+Or you can join the room if you get the room code from your friends.\
+![Alt][3]\
+Inside the room, the music player panel displays the music playing.\
+![Alt][4]\
 
 ### How Music Paradise is created
-Music Paradise consists of several parts:
+Music Paradise consists of several parts:\
 1. Backend framework written in Python and the django framework
 	- Use a SQLite database to store all rooms created by users
 	- Provide a REST API for the fronetend to communicate
@@ -68,10 +69,10 @@ python manage.py runserver
 ```
 
 ## Credits
-I follow the most of the steps in the tutorial created by Tech with Tim. Tutorial video linked below:
-[Django & React Tutorial #1 - Full Stack Web App With Python & JavaScript](https://www.youtube.com/watch?v=JD-age0BPVo&list=PLzMcBGfZo4-kCLWnGmK0jUBmGLaJxvi4j&index=2)
+I follow the most of the steps in the tutorial created by Tech with Tim. Tutorial video linked below:\
+[Django & React Tutorial #1 - Full Stack Web App With Python & JavaScript](https://www.youtube.com/watch?v=JD-age0BPVo&list=PLzMcBGfZo4-kCLWnGmK0jUBmGLaJxvi4j&index=2) \
 
-Note there are some changes from the tutorial includes:
+Note there are some changes from the tutorial includes:\
 - Changed the React structure from Class components to Functional components.
 - Alter the music player panel display
 - Separate vote systems for skipping to next song and skipping to previous song
